@@ -1,4 +1,6 @@
 const fs = require("fs"); //File System
+const http = require("http");
+const url = require("url");
 
 /*
 //Blocking synchronous way
@@ -9,7 +11,7 @@ const textOut = `This is what we know about the avocado : ${textIn}. \n Created 
 fs.writeFileSync("./txt/output.txt", textOut);
 console.log("File written successfully!");
 */
-
+/*
 //Non-blocking asynchronous way
 //Unblocking asynchronous way
 fs.readFile("./txt/start.txt", "utf-8", (err, data1) => {
@@ -29,3 +31,33 @@ fs.readFile("./txt/start.txt", "utf-8", (err, data1) => {
 console.log("Reading file..."); //Will appear before the file content due to async nature
 
 //function(err, data1){}
+*/
+////////////////////
+//Server
+const server = http.createServer((req, res) => {
+  console.log(req.url); //Request object
+
+  const pathName = req.url;
+
+  if (pathName === "/" || pathName === "/overview") {
+    res.end("This is overview");
+    return;
+  } else if (pathName === "/product") {
+    res.end("This is the Product");
+    return;
+  } else {
+    res.writeHead(404, {
+      "content-type": "text/html",
+      "my-own-header": "hello-world",
+    });
+    res.end("<h1>Page not found! 404</h1>");
+    return;
+  }
+
+  res.end("Hello from the server!?");
+});
+
+server.listen(8000, "127.0.0.1", () => {
+  console.log("Listening to requests on port 8000");
+});
+//server.listen(8000); //Will listen on all available IP addresses
