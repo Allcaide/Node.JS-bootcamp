@@ -34,6 +34,10 @@ console.log("Reading file..."); //Will appear before the file content due to asy
 */
 ////////////////////
 //Server
+
+const data = fs.readFileSync(`${__dirname}/dev-data/data.json`, "utf-8");
+const dataObj = JSON.parse(data);
+
 const server = http.createServer((req, res) => {
   console.log(req.url); //Request object
 
@@ -45,6 +49,10 @@ const server = http.createServer((req, res) => {
   } else if (pathName === "/product") {
     res.end("This is the Product");
     return;
+  } else if (pathName === "/api") {
+    //res.end("API");
+    res.writeHead(200, { "Content-type": "application/json" });
+    res.end(data); //Sending JSON data as response
   } else {
     res.writeHead(404, {
       "content-type": "text/html",
@@ -53,8 +61,6 @@ const server = http.createServer((req, res) => {
     res.end("<h1>Page not found! 404</h1>");
     return;
   }
-
-  res.end("Hello from the server!?");
 });
 
 server.listen(8000, "127.0.0.1", () => {
