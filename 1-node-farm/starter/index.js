@@ -33,26 +33,82 @@ console.log("Reading file..."); //Will appear before the file content due to asy
 //function(err, data1){}
 */
 ////////////////////
-//Server
+//Tem que ser feito antes do site ir "live" assim é só lido uma vez, e não uma vez cada vez que um user acessa o site
 
+// Função replaceTemplate recebe dois parâmetros: 'temp' (um template de string) e 'product' (um objeto com dados do produto)
+const replaceTemplate = function (temp, product) {
+  let output = temp.replace(/{%PRODUCTNAME%}/g, product.productName);
+  output = output.replace(/{%IMAGE%}/g, product.image);
+  output = output.replace(/{%PRICE%}/g, product.price);
+  output = output.replace(/{%FROM%}/g, product.from);
+  output = output.replace(/{%NUTRIENTS%}/g, product.nutrients);
+  output = output.replace(/{%QUANTITY%}/g, product.quantity);
+  output = output.replace(/{%DESCRIPTION%}/g, product.description);
+  output = output.replace(/{%ID%}/g, product.id);
+
+  if (!product.organic) {
+    output = output.replace(/{%NOT_ORGANIC%}/g, "not-organic");
+  }
+  return output;
+};
+
+const tempOverview = fs.readFileSync(
+  `${__dirname}/templates/template-overview.html`,
+  "utf-8"
+);
+
+const tempCard = fs.readFileSync(
+  `${__dirname}/templates/template-card.html`,
+  "utf-8"
+);
+const tempProduct = fs.readFileSync(
+  `${__dirname}/templates/product.html`,
+  "utf-8"
+);
 const data = fs.readFileSync(`${__dirname}/dev-data/data.json`, "utf-8");
 const dataObj = JSON.parse(data);
 
 const server = http.createServer((req, res) => {
-  console.log(req.url); //Request object
+  //console.log(req.url); //Request object
+  //console.log(url.parse(req.url, true)); //URL object
+  const { query, pathname } = url.parse(req.url, true);
 
-  const pathName = req.url;
+  //Overview and Product page
+  if (pathname === "/" || pathname === "/overview") {
+    res.writeHead(200, {
+      "Content-type": "text/html",
+    });
+    // o map aceita uma callback function, essa callback function recebe como argumento o current element, ou seja o elemento do loop atual e o que quer que retornemos na função vai ser salvo num array
+    //console.log(dataObj);
+    const cardsHtml = dataObj
+      .map(function (el) {
+        return replaceTemplate(tempCard, el);
+      })
+      .join("");
+    //console.log(cardsHtml); //Para testes
+    const output = tempOverview.replace("{%PRODUCT_CARDS%}", cardsHtml);
+    res.end(output); //Sending HTML as response
+    return;
 
-  if (pathName === "/" || pathName === "/overview") {
-    res.end("This is overview");
+    //Product Page
+  } else if (pathname === "/product") {
+    res.writeHead(200, {
+      "Content-type": "text/html",
+    });
+    //console.log(query, pathname);
+    const product = dataObj[query.id];
+    const output = replaceTemplate(tempProduct, product);
+    res.end(output); //Sending HTML as response
+
     return;
-  } else if (pathName === "/product") {
-    res.end("This is the Product");
-    return;
-  } else if (pathName === "/api") {
+
+    //API
+  } else if (pathname === "/api") {
     //res.end("API");
     res.writeHead(200, { "Content-type": "application/json" });
     res.end(data); //Sending JSON data as response
+
+    //Not Found
   } else {
     res.writeHead(404, {
       "content-type": "text/html",
