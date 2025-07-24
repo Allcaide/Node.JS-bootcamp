@@ -2,6 +2,10 @@ const fs = require("fs"); //File System
 const http = require("http");
 const url = require("url");
 
+const slugify = require('slugify'); //Import slugify for URL-friendly strings
+
+const replaceTemplate = require('../modules/replaceTemplate.js');
+
 /*
 //Blocking synchronous way
 const textIn = fs.readFileSync("./txt/input.txt", "utf-8");
@@ -36,21 +40,8 @@ console.log("Reading file..."); //Will appear before the file content due to asy
 //Tem que ser feito antes do site ir "live" assim é só lido uma vez, e não uma vez cada vez que um user acessa o site
 
 // Função replaceTemplate recebe dois parâmetros: 'temp' (um template de string) e 'product' (um objeto com dados do produto)
-const replaceTemplate = function (temp, product) {
-  let output = temp.replace(/{%PRODUCTNAME%}/g, product.productName);
-  output = output.replace(/{%IMAGE%}/g, product.image);
-  output = output.replace(/{%PRICE%}/g, product.price);
-  output = output.replace(/{%FROM%}/g, product.from);
-  output = output.replace(/{%NUTRIENTS%}/g, product.nutrients);
-  output = output.replace(/{%QUANTITY%}/g, product.quantity);
-  output = output.replace(/{%DESCRIPTION%}/g, product.description);
-  output = output.replace(/{%ID%}/g, product.id);
 
-  if (!product.organic) {
-    output = output.replace(/{%NOT_ORGANIC%}/g, "not-organic");
-  }
-  return output;
-};
+
 
 const tempOverview = fs.readFileSync(
   `${__dirname}/templates/template-overview.html`,
@@ -67,6 +58,15 @@ const tempProduct = fs.readFileSync(
 );
 const data = fs.readFileSync(`${__dirname}/dev-data/data.json`, "utf-8");
 const dataObj = JSON.parse(data);
+//console.log(dataObj);
+
+const slugs = dataObj.map(function (el) {
+  return slugify(el.productName, {lower:true});
+})
+
+console.log(slugs); //Exibe os slugs gerados para cada produto
+
+console.log(slugify('Fresh Avocados', {lower:true}));
 
 const server = http.createServer((req, res) => {
   //console.log(req.url); //Request object
@@ -119,7 +119,11 @@ const server = http.createServer((req, res) => {
   }
 });
 
-server.listen(8000, "127.0.0.1", () => {
+server.listen(8000, () => {
   console.log("Listening to requests on port 8000");
+  if (process.env.CODESPACE_NAME) {
+    console.log(
+      `Acede ao servidor em: https://${process.env.CODESPACE_NAME}-8000.githubpreview.dev`
+    );
+  }
 });
-//server.listen(8000); //Will listen on all available IP addresses
