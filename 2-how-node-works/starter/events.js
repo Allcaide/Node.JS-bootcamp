@@ -1,7 +1,10 @@
+/*
 const EventEmitter = require('events');
+const http = require('http');
+*/
 
 
-const myEmitter = new EventEmitter();
+
 
 // Define uma classe chamada Sales que herda de EventEmitter
 class Sales extends EventEmitter { //Ver aulas Secção 14 do JS course
@@ -12,7 +15,11 @@ class Sales extends EventEmitter { //Ver aulas Secção 14 do JS course
     }
 }
 
+
+
 const myEmitter = new Sales();
+
+
 
 myEmitter.on('newSale', () =>{
 
@@ -30,3 +37,26 @@ myEmitter.on('newSale', stock => { //Assim o stock apanha o valor passado no emi
 
 
 myEmitter.emit('newSale', 9);
+
+///////////////////////
+
+const server = http.createServer();
+
+server.on('request', (req, res) => {
+    console.log("Request received!");
+    console.log(req.url);
+    res.end("Request received! 🚀");
+});
+
+server.on('request', (req, res) => {
+    console.log("Another request received!😊");
+
+});
+
+server.on('close',() => {
+    console.log('Server closed!');
+});
+
+server.listen(8000, '127.0.0.1', () => {
+    console.log('Waiting for requests...');
+});
